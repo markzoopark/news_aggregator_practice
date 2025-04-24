@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="uk">
+	<head>
+		<meta charset="UTF-8" />
+		<title>News Dashboard</title>
+		<link rel="stylesheet" href="styles.css" />
+		<!-- Chart.js CDN -->
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	</head>
+	<body>
+		<h1>Дашборд новин</h1>
+		<div>
+			<label for="filter-select">Фільтр тональності:</label>
+			<select id="filter-select">
+				<option value="all">Усі</option>
+				<option value="positive">Позитивні</option>
+				<option value="neutral">Нейтральні</option>
+				<option value="negative">Негативні</option>
+			</select>
+		</div>
+		<div class="chart-container">
+			<canvas id="sentiment-chart" width="600" height="300"></canvas>
+		</div>
+		<table id="articles-table">
+			<thead>
+				<tr>
+					<th>Дата</th>
+					<th>Тональність</th>
+					<th>Заголовок</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+		<!-- замість: <script> const STUDENT_ID = "<?= STUDENT_ID ?>"; </script> -->
+		<script src="main.js"></script>
+		<!-- Убедитесь, что файл называется main.js -->
+
+		<script>
+			// Скопіюйте сюди свій ідентифікатор з config.py, наприклад:
+			const STUDENT_ID = 'YourSurname_530960a9';
+		</script>
+	</body>
+</html>

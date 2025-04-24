@@ -1,0 +1,9 @@
+.chart-container {
+	max-width: 600px; /* або 80% ширини екрану */
+	max-height: 400px; /* обмеження по висоті */
+	margin: auto; /* по центру */
+}
+.chart-container canvas {
+	width: 100% !important;
+	height: auto !important;
+}

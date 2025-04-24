@@ -1,0 +1,21 @@
+services:
+    backend:
+        build:
+            context: .
+            dockerfile: backend/Dockerfile
+        volumes:
+            - ./config.py:/app/config.py:ro
+        ports:
+            - '8000:8000'
+        # Чтобы CORS разрешал frontend
+        environment:
+            - ALLOWED_ORIGINS=http://localhost
+
+    frontend:
+        build:
+            context: .
+            dockerfile: frontend/Dockerfile
+        ports:
+            - '8002:80'
+        depends_on:
+            - backend
