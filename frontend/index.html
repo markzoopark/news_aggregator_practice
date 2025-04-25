@@ -8,36 +8,62 @@
 		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 	</head>
 	<body>
-		<h1>Дашборд новин</h1>
-		<div>
-			<label for="filter-select">Фільтр тональності:</label>
-			<select id="filter-select">
-				<option value="all">Усі</option>
-				<option value="positive">Позитивні</option>
-				<option value="neutral">Нейтральні</option>
-				<option value="negative">Негативні</option>
-			</select>
+		<!-- Додаємо форму входу -->
+		<div id="login-section">
+			<h2>Login</h2>
+			<form id="login-form">
+				<input name="username" placeholder="Username" required />
+				<input
+					name="password"
+					type="password"
+					placeholder="Password"
+					required
+				/>
+				<button type="submit">Увійти</button>
+			</form>
 		</div>
-		<div class="chart-container">
-			<canvas id="sentiment-chart" width="600" height="300"></canvas>
-		</div>
-		<table id="articles-table">
-			<thead>
-				<tr>
-					<th>Дата</th>
-					<th>Тональність</th>
-					<th>Заголовок</th>
-				</tr>
-			</thead>
-			<tbody></tbody>
-		</table>
-		<!-- замість: <script> const STUDENT_ID = "<?= STUDENT_ID ?>"; </script> -->
-		<script src="main.js"></script>
-		<!-- Убедитесь, что файл называется main.js -->
 
+		<!-- Основний контент дашборду (спочатку прихований) -->
+		<div id="dashboard-section" style="display: none">
+			<h1>Дашборд новин</h1>
+			<div>
+				<label for="filter-select">Фільтр тональності:</label>
+				<select id="filter-select">
+					<option value="all">Усі</option>
+					<option value="positive">Позитивні</option>
+					<option value="neutral">Нейтральні</option>
+					<option value="negative">Негативні</option>
+				</select>
+				<button id="logout-button" style="margin-left: 20px">
+					Вийти
+				</button>
+				<!-- Додаємо кнопку виходу -->
+			</div>
+			<div class="chart-container">
+				<canvas id="sentiment-chart" width="600" height="300"></canvas>
+			</div>
+			<table id="articles-table">
+				<thead>
+					<tr>
+						<th>Дата</th>
+						<th>Тональність</th>
+						<th>Заголовок</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</div>
+
+		<!-- замість: <script> const STUDENT_ID = "<?= STUDENT_ID ?>"; </script> -->
+		<!-- Підключаємо основний скрипт та скрипт логіну -->
+		<script src="main.js"></script>
+		<script src="login.js"></script>
+		<!-- Видаляємо старий скрипт визначення STUDENT_ID -->
+		<!--
 		<script>
 			// Скопіюйте сюди свій ідентифікатор з config.py, наприклад:
 			const STUDENT_ID = 'YourSurname_530960a9';
 		</script>
+		-->
 	</body>
 </html>

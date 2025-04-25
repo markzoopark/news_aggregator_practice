@@ -7,9 +7,13 @@ services:
             - ./config.py:/app/config.py:ro
         ports:
             - '8000:8000'
-        # Чтобы CORS разрешал frontend
+        # Завантажуємо змінні з .env файлу
+        env_file:
+            - .env
+        # Також можна передавати змінні тут, якщо потрібно
         environment:
-            - ALLOWED_ORIGINS=http://localhost
+            # - ALLOWED_ORIGINS=http://localhost # Ця змінна не використовується в app.py, її можна видалити або передати з .env
+            - SECRET_KEY=${SECRET_KEY} # Ця змінна буде взята з .env завдяки env_file
 
     frontend:
         build:
