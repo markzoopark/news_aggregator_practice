@@ -27,10 +27,15 @@ jobs:
         needs: backend-tests
         steps:
             - uses: actions/checkout@v3
-            - run: npm install -g http-server
-            - run: |
-                  cd frontend
-                  nohup http-server -p 8001 &
+
+            # Встановлюємо http-server локально
+            - name: Install http-server (local)
+              run: npm install http-server
+
+            # Запускаємо сервер через npx
+            - name: Запустити локальний сервер фронтенду та перевірити
+              run: |
+                  npx http-server frontend -p 8001 &
                   sleep 2
                   curl -f http://localhost:8001/index.html
 
