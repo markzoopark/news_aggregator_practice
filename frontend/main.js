@@ -241,3 +241,10 @@ function logout() {
 	if (dashboardSection) dashboardSection.style.display = 'none';
 	clearDashboard();
 }
+
+// Ініціалізація (якщо скрипт login.js ще не робить це після успішного входу)
+// Переконайся, що loadInitialData() викликається після успішного логіну в login.js
+// Або розкоментуй цей блок, якщо хочеш спробувати завантажити дані при відкритті сторінки, якщо токен вже є
+// if (localStorage.getItem('token')) {
+//    loadInitialData();
+// }

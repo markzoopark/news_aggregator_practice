@@ -135,6 +135,22 @@ news_store = {STUDENT_ID: []}
 # Initialize the analyzer
 analyzer = SentimentIntensityAnalyzer()
 
+# --- Доданий код для завантаження джерел при старті ---
+@app.on_event("startup")
+async def load_initial_sources():
+    """Завантажує початкові RSS-джерела з config.py при старті."""
+    student_id_from_config = getattr(config, 'STUDENT_ID', None)
+    sources_from_config = getattr(config, 'SOURCES', None)
+
+    if student_id_from_config and isinstance(sources_from_config, list):
+        # Переконуємося, що для цього студента є запис у sources_store
+        # і встановлюємо джерела з конфігу (перезаписуємо, якщо щось було раніше)
+        sources_store[student_id_from_config] = sources_from_config
+        print(f"INFO:     Завантажено {len(sources_from_config)} джерел для {student_id_from_config} з config.py")
+    else:
+        print("INFO:     STUDENT_ID або SOURCES не знайдено/некоректні в config.py, початкові джерела не завантажено.")
+# --- Кінець доданого коду ---
+
 @app.get("/info")
 def info():
     return {"student_id": STUDENT_ID}
