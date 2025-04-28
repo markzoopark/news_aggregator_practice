@@ -1,101 +1,66 @@
 name: CI
 
-# Запускати при пуші та pull request у будь-яку гілку
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
 
 jobs:
-  backend-tests:
-    name: Backend: запус тестів
-    runs-on: ubuntu-latest
+    backend-tests:
+        name: 'Backend: тести'
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-python@v4
+              with:
+                  python-version: '3.13'
+            - run: |
+                  python -m pip install --upgrade pip
+                  pip install -r requirements.txt
+                  pip install pytest pytest-asyncio
+            - run: pytest tests -q
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    frontend-tests:
+        name: 'Frontend: index.html'
+        runs-on: ubuntu-latest
+        needs: backend-tests
+        steps:
+            - uses: actions/checkout@v3
+            - run: npm install -g http-server
+            - run: |
+                  cd frontend
+                  nohup http-server -p 8001 &
+                  sleep 2
+                  curl -f http://localhost:8001/index.html
 
-      - name: Setup Python 3.13
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.13'
+    publish-images:
+        name: 'Build & push Docker images'
+        runs-on: ubuntu-latest
+        needs: [backend-tests, frontend-tests]
+        steps:
+            - uses: actions/checkout@v3
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+            - uses: docker/setup-qemu-action@v3
+            - uses: docker/setup-buildx-action@v3
 
-      - name: Запустити тести бекенду
-        working-directory: ./backend
-        run: |
-          pip install pytest pytest-asyncio
-          pytest ../tests -q
+            - uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-  frontend-tests:
-    name: Frontend: перевірка доступності
-    runs-on: ubuntu-latest
-    needs: backend-tests
+            - name: Build & push backend
+              uses: docker/build-push-action@v5
+              with:
+                  context: .
+                  file: Dockerfile
+                  tags: ${{ secrets.DOCKERHUB_USERNAME }}/news-backend:latest
+                  push: true
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Install http-server
-        run: npm install --global http-server
-
-      - name: Запустити локальний сервер фронтенду
-        run: |
-          # Стартуємо http-server у фоновому режимі
-          cd frontend
-          nohup http-server -p 8001 &
-
-      - name: Перевірити доступність index.html
-        run: |
-          # чекаємо 2 секунди, щоб сервер запустився
-          sleep 2
-          curl -f http://localhost:8001/index.html
-
-# --- новий блок ------------------------
-  publish-images:
-    name: Build & Push Docker images
-    runs-on: ubuntu-latest
-    needs: [backend-tests, frontend-tests]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # ==== налаштування buildx ==========
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
-
-      # ==== логін у Docker Hub ===========
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      # ==== збірка та пуш бекенду =========
-      - name: Build & push backend
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: backend/Dockerfile             # якщо твій backend-Dockerfile у корені
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/news-backend:latest
-          push: true
-
-      # ==== збірка та пуш фронтенду =======
-      - name: Build & push frontend
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: frontend/Dockerfile
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/news-frontend:latest
-          push: true
-# --- кінець блоку -----------------------
+            - name: Build & push frontend
+              uses: docker/build-push-action@v5
+              with:
+                  context: .
+                  file: frontend/Dockerfile
+                  tags: ${{ secrets.DOCKERHUB_USERNAME }}/news-frontend:latest
+                  push: true
