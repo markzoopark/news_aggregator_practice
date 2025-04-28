@@ -1,11 +1,13 @@
 fastapi
 uvicorn[standard]
-feedparser
+feedparser>=6.0
 vaderSentiment
+python-dotenv
 
 python-multipart
 python-jose[cryptography]
 bcrypt==3.2.0
 
 passlib[bcrypt]
+httpx>=0.25
 

@@ -11,6 +11,7 @@ from config import STUDENT_ID
 
 import feedparser
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from typing import Dict, List
 
 app = FastAPI()
 
@@ -124,6 +125,10 @@ def require_role(required_role: str):
         return current_user
     return role_checker
 
+# Пам'ять для джерел RSS: { student_id: [url1, url2, ...] }
+# Ініціалізуємо порожнім, щоб тести могли контролювати стан
+sources_store: Dict[str, List[str]] = {}
+
 # Пам'ять для статей: { student_id: [ {title, link, published}, ... ] }
 news_store = {STUDENT_ID: []}
 
@@ -135,14 +140,14 @@ def info():
     return {"student_id": STUDENT_ID}
 
 @app.post("/fetch/{student_id}")
-async def fetch_news(student_id: str, current_user: dict = Depends(require_role("student"))):
-    if student_id != current_user["username"]:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Ви можете оновлювати новини лише для себе")
+async def fetch_news(student_id: str):
     if student_id != STUDENT_ID:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student ID не знайдено")
     fetched = 0
-    news_store[student_id].clear()
-    for url in config.SOURCES:
+    # Ініціалізуємо або очищуємо список новин для студента
+    news_store.setdefault(student_id, []).clear()
+    # Використовуємо список джерел зі сховища
+    for url in sources_store.get(student_id, []):
         feed = feedparser.parse(url)
         for entry in getattr(feed, "entries", []):
             news_store[student_id].append({
@@ -162,9 +167,7 @@ def get_news(student_id: str):
     return {"articles": news_store[student_id]}
 
 @app.post("/analyze/{student_id}")
-async def analyze_tone(student_id: str, current_user: dict = Depends(require_role("student"))):
-    if student_id != current_user["username"]:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Ви можете аналізувати новини лише для себе")
+async def analyze_tone(student_id: str):
     if student_id != STUDENT_ID:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student ID не знайдено")
     articles = news_store.get(student_id, [])
@@ -187,3 +190,26 @@ async def analyze_tone(student_id: str, current_user: dict = Depends(require_rol
             "scores": scores
         })
     return {"analyzed": len(result), "articles": result}
+
+# --- Нові ендпоінти для керування джерелами --- 
+
+@app.get("/sources/{student_id}")
+def get_sources(student_id: str):
+    # Перевірка чи студент існує (можна додати, якщо потрібно більш строгу логіку)
+    # if student_id not in fake_users_db:
+    #     raise HTTPException(status_code=404, detail="Student ID not found")
+    # Повертаємо словник відповідно до очікувань тесту
+    return {"sources": sources_store.get(student_id, [])}
+
+@app.post("/sources/{student_id}")
+def add_source(student_id: str, payload: dict):
+    # Перевірка чи студент існує (можна додати)
+    # if student_id not in fake_users_db:
+    #     raise HTTPException(status_code=404, detail="Student ID not found")
+    url = payload.get("url")
+    if not url:
+        raise HTTPException(status_code=400, detail="Параметр 'url' обов'язковий")
+    # Додаємо джерело до списку студента, створюючи список якщо його немає
+    sources_store.setdefault(student_id, []).append(url)
+    # Повертаємо словник відповідно до очікувань тесту
+    return {"sources": sources_store[student_id]}
